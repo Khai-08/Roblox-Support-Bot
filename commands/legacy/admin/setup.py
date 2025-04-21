@@ -18,8 +18,7 @@ class GameFormDropdown(Select):
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user != self.ctx.author:
-            error_message = discord.Embed(description="You are not authorized to perform this action.", color=discord.Color.red())
-            await interaction.response.send_message(embed=error_message, ephemeral=True)
+            await interaction.response.send_message(embed=discord.Embed(description="You are not authorized to perform this action.", color=discord.Color.red()), ephemeral=True)
             return
 
         selected_channel = discord.utils.get(self.ctx.guild.text_channels, id=int(self.values[0]))
@@ -44,6 +43,8 @@ class GameFormDropdown(Select):
             embed = discord.Embed(title="Game Report", description="To report a player for in-game misconduct, please press the button below. \n\nInclude as much evidence as possible (e.g., screenshots, videos) to support your report.", color=discord.Color.blue())
         elif self.form_type == "appeals":
             embed = discord.Embed(title="Appeal Request", description="To appeal a punishment, please press the button below. \n\nProvide a clear explanation and any supporting evidence for your appeal.", color=discord.Color.blue())
+        else:
+            return
         embed.set_footer(text="If the button does not work, please inform a Moderator.")
 
         await channel.send(embed=embed, view=FormView(bot=self.bot, form_type=self.form_type))
@@ -64,7 +65,7 @@ def setup(bot):
             initial_view.add_item(reports_button)
 
             async def button_callback(interaction):
-                form_type = interaction.data["custom_id"].replace("_button", "")
+                form_type = "reports" if interaction.data["custom_id"] == "reports_button" else "appeals"
                 form_embed = discord.Embed(title=f"Select {form_type.capitalize()} Form Channel", description="Select the channel where the form button will be posted.", color=discord.Color.green())
                 form_view = View(timeout=30)
                 form_view.add_item(GameFormDropdown(ctx, form_type, bot, form_view, "form"))
