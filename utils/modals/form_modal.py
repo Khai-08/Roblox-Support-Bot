@@ -36,10 +36,12 @@ class ReportFormModal(Modal, title="Game Report Form"):
         embed.add_field(name="Evidence", value=self.evidence.value, inline=False)
         if self.additional_info.value:
             embed.add_field(name="Additional Info", value=self.additional_info.value, inline=False)
+        embed.add_field(name="Status", value="Waiting for admin/staff response...", inline=False)
         embed.set_footer(text=f"Submitted by {interaction.user}", icon_url=interaction.user.display_avatar.url)
 
         view = FormActionView(self.bot, interaction.user, "report")
-        await pending_channel.send(embed=embed, view=view)
+        sent_message = await pending_channel.send(embed=embed, view=view)
+        view.message = sent_message
         await interaction.response.send_message(embed=discord.Embed(description="Your report has been submitted.", color=discord.Color.green()), ephemeral=True)
 
 
@@ -86,11 +88,12 @@ class AppealFormModal(Modal, title="Appeal Form"):
 
 
 class RejectReasonModal(Modal, title="Rejection Reason"):
-    def __init__(self, bot, user, form_type):
+    def __init__(self, bot, user, form_type, message):
         super().__init__()
         self.bot = bot
         self.user = user
         self.form_type = form_type
+        self.message = message
         self.reason = TextInput(label="Reason for Rejection", style=discord.TextStyle.paragraph, required=True)
         self.add_item(self.reason)
 
@@ -106,7 +109,10 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
         except:
             pass
 
-        await interaction.message.edit(view=None)
+        if self.message:
+            original = self.message.embeds[0]
+            original.set_field_at(index=original.fields.index(next(f for f in original.fields if f.name == "Status")), name="Status", value="❌ Rejected", inline=False)
+            await self.message.edit(embed=original, view=None)
 
 
 class FormActionView(View):
@@ -115,6 +121,7 @@ class FormActionView(View):
         self.bot = bot
         self.user = user
         self.form_type = form_type
+        self.message = None
 
     @discord.ui.button(label="Approve", style=discord.ButtonStyle.green)
     async def approve(self, interaction: discord.Interaction, button: Button):
@@ -128,11 +135,14 @@ class FormActionView(View):
         except:
             pass
 
-        await interaction.message.edit(view=None)
+        if self.message:
+            original = self.message.embeds[0]
+            original.set_field_at(index=original.fields.index(next(f for f in original.fields if f.name == "Status")), name="Status", value="✅ Approved", inline=False)
+            await self.message.edit(embed=original, view=None)
 
     @discord.ui.button(label="Reject", style=discord.ButtonStyle.danger)
     async def reject(self, interaction: discord.Interaction, button: Button):
-        await interaction.response.send_modal(RejectReasonModal(bot=self.bot, user=self.user, form_type=self.form_type))
+        await interaction.response.send_modal(RejectReasonModal(bot=self.bot, user=self.user, form_type=self.form_type, message=self.message))
 
 
 class FormView(View):
