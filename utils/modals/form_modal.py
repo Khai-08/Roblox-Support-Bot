@@ -1,5 +1,6 @@
 import discord
 from discord.ui import Modal, TextInput, View, Button
+from utils.api_utils import fetch_user_thumbnail, fetch_user_info
 
 class ReportFormModal(Modal, title="Game Report Form"):
     def __init__(self, bot):
@@ -7,12 +8,12 @@ class ReportFormModal(Modal, title="Game Report Form"):
         self.bot = bot
         self.form_type = "reports"
 
-        self.name = TextInput(label="Reported Player's Roblox Username", placeholder="Enter the exact Roblox username", required=True)
+        self.user_id = TextInput(label="Reported Roblox User ID", placeholder="Enter the Roblox User ID", required=True)
         self.reason = TextInput(label="Reason", placeholder="Describe what the player did wrong", style=discord.TextStyle.paragraph, required=True)
         self.evidence = TextInput(label="Evidence", placeholder="Provide links to images/videos or describe the evidence", style=discord.TextStyle.paragraph, required=True)
         self.additional_info = TextInput(label="Additional Information", style=discord.TextStyle.paragraph, required=False)
 
-        self.add_item(self.name)
+        self.add_item(self.user_id)
         self.add_item(self.reason)
         self.add_item(self.evidence)
         self.add_item(self.additional_info)
@@ -23,20 +24,25 @@ class ReportFormModal(Modal, title="Game Report Form"):
 
         if not pending_channel_id:
             return await interaction.response.send_message(embed=discord.Embed(description="Pending channel not set up. Please contact an admin.", color=discord.Color.red()), ephemeral=True)
-            
 
         pending_channel = interaction.guild.get_channel(pending_channel_id)
         if not pending_channel:
             return await interaction.response.send_message(embed=discord.Embed(description="Pending channel is invalid or missing.", color=discord.Color.red()), ephemeral=True)
 
+        user_id_input = self.user_id.value.strip()
+        if user_id_input.isdigit(): user_id = int(user_id_input)
+        else: return await interaction.response.send_message(embed=discord.Embed(description="Invalid Roblox User ID. Please enter a valid numeric User ID.", color=discord.Color.red()), ephemeral=True)
+        user_info = await fetch_user_info(user_id)
+
         embed = discord.Embed(title="New Game Report", color=discord.Color.blue())
-        embed.add_field(name="Roblox Username", value=self.name.value, inline=False)
+        embed.add_field(name="Roblox Username", value=f"[{user_info['displayName']} (@{user_info['name']})](https://www.roblox.com/users/{user_info['id']}/profile)", inline=False)
         embed.add_field(name="Reason", value=self.reason.value, inline=False)
         embed.add_field(name="Evidence", value=self.evidence.value, inline=False)
         if self.additional_info.value:
             embed.add_field(name="Additional Info", value=self.additional_info.value, inline=False)
         embed.add_field(name="Status", value="Waiting for admin/staff response...", inline=False)
         embed.set_footer(text=f"Submitted by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+        embed.set_thumbnail(url=await fetch_user_thumbnail(self.user_id.value))
 
         view = FormActionView(self.bot, interaction.user, "report")
         sent_message = await pending_channel.send(embed=embed, view=view)
@@ -50,12 +56,12 @@ class AppealFormModal(Modal, title="Appeal Form"):
         self.bot = bot
         self.form_type = "appeals"
 
-        self.name = TextInput(label="Roblox Username", required=True)
+        self.user_id = TextInput(label="Roblox User ID", required=True)
         self.ban_reason = TextInput(label="Ban Reason", required=True)
         self.appeal_reason = TextInput(label="Reason For Appeal", style=discord.TextStyle.paragraph, required=True)
         self.additional_info = TextInput(label="Additional Information", style=discord.TextStyle.paragraph, required=False)
 
-        self.add_item(self.name)
+        self.add_item(self.user_id)
         self.add_item(self.ban_reason)
         self.add_item(self.appeal_reason)
         self.add_item(self.additional_info)
@@ -70,17 +76,23 @@ class AppealFormModal(Modal, title="Appeal Form"):
         pending_channel = interaction.guild.get_channel(pending_channel_id)
         if not pending_channel:
             return await interaction.response.send_message(embed=discord.Embed(description="Pending channel is invalid or missing.", color=discord.Color.red()), ephemeral=True)
-            
+        
+        user_id_input = self.user_id.value.strip()
+        if user_id_input.isdigit(): user_id = int(user_id_input)
+        else: return await interaction.response.send_message(embed=discord.Embed(description="Invalid Roblox User ID. Please enter a valid numeric User ID.", color=discord.Color.red()), ephemeral=True)
+        user_info = await fetch_user_info(user_id)
+
         embed = discord.Embed(title="New Appeal Report", color=discord.Color.blue())
-        embed.add_field(name="Roblox Username", value=self.name.value, inline=False)
+        embed.add_field(name="Roblox Username", value=f"[{user_info['displayName']} (@{user_info['name']})](https://www.roblox.com/users/{user_info['id']}/profile)", inline=False)
         embed.add_field(name="Ban Reason", value=self.ban_reason.value, inline=False)
         embed.add_field(name="Reason For Appeal", value=self.appeal_reason.value, inline=False)
         if self.additional_info.value:
             embed.add_field(name="Additional Info", value=self.additional_info.value, inline=False)
         embed.add_field(name="Status", value="Waiting for admin/staff response...", inline=False)
         embed.set_footer(text=f"Submitted by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+        embed.set_thumbnail(url=await fetch_user_thumbnail(self.user_id.value))
 
-        view = FormActionView(self.bot, interaction.user, "appeal", name=self.name.value, ban_reason=self.ban_reason.value, appeal_reason=self.appeal_reason.value, additional_info=self.additional_info.value)
+        view = FormActionView(self.bot, interaction.user, "appeal", name=user_info["name"], ban_reason=self.ban_reason.value, appeal_reason=self.appeal_reason.value, additional_info=self.additional_info.value)
         sent_message = await pending_channel.send(embed=embed, view=view)
         view.message = sent_message
         await interaction.response.send_message(embed=discord.Embed(description="Your appeal has been submitted.", color=discord.Color.green()), ephemeral=True)
@@ -103,7 +115,7 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.send_message(embed=discord.Embed(description="Rejection submitted. The user has been notified.", color=discord.Color.green()), ephemeral=True)
         
-        embed = discord.Embed(title=f"{self.form_type.capitalize()} Rejected", color=discord.Color.red(), description="Your game report has been reviewed and no action has been taken. The report did not meet our moderation criteria." if self.form_type == "report" else "Your appeal has been reviewed and denied. The ban will remain in place.")
+        embed = discord.Embed(title=f"{self.form_type.capitalize()} Rejected", color=discord.Color.red(), description="Your game report for has been reviewed and no action has been taken. The report did not meet our moderation criteria." if self.form_type == "report" else "Your appeal has been reviewed and denied. The ban will remain in place.")
         embed.add_field(name="Reason", value=self.reason.value, inline=False)
         embed.set_footer(text="This is an automated message.")
 
@@ -122,14 +134,13 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
                 embed.add_field(name="Reason for Appeal", value=self.appeal_reason, inline=False)
                 if self.additional_info:
                     embed.add_field(name="Additional Info", value=self.additional_info, inline=False)
-                embed.add_field(name="Rejection Reason", value=self.reason.value, inline=False)
-                embed.add_field(name="Status", value="❌ Rejected", inline=False)
+                embed.add_field(name="Status", value=f"❌ Rejected: {self.reason.value}", inline=False)
                 embed.set_footer(text=f"Submitted by {interaction.user}", icon_url=interaction.user.display_avatar.url)
                 await channel.send(embed=embed)
 
         if self.message:
             original = self.message.embeds[0]
-            original.set_field_at(index=original.fields.index(next(f for f in original.fields if f.name == "Status")), name="Status", value="❌ Rejected", inline=False)
+            original.set_field_at(index=original.fields.index(next(f for f in original.fields if f.name == "Status")), name="Status", value=f"❌ Rejected: {self.reason.value}", inline=False)
             await self.message.edit(embed=original, view=None)
 
 
