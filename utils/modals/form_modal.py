@@ -77,10 +77,12 @@ class AppealFormModal(Modal, title="Appeal Form"):
         embed.add_field(name="Reason For Appeal", value=self.appeal_reason.value, inline=False)
         if self.additional_info.value:
             embed.add_field(name="Additional Info", value=self.additional_info.value, inline=False)
+        embed.add_field(name="Status", value="Waiting for admin/staff response...", inline=False)
         embed.set_footer(text=f"Submitted by {interaction.user}", icon_url=interaction.user.display_avatar.url)
 
         view = FormActionView(self.bot, interaction.user, "appeal", name=self.name.value, ban_reason=self.ban_reason.value, appeal_reason=self.appeal_reason.value, additional_info=self.additional_info.value)
-        await pending_channel.send(embed=embed, view=view)
+        sent_message = await pending_channel.send(embed=embed, view=view)
+        view.message = sent_message
         await interaction.response.send_message(embed=discord.Embed(description="Your appeal has been submitted.", color=discord.Color.green()), ephemeral=True)
 
 
