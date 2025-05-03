@@ -12,9 +12,9 @@ class GameFormDropdown(Select):
         self.channel_type = channel_type
         self.parent_view = parent_view
 
-        options = [discord.SelectOption(label=f"#{channel.name}", value=str(channel.id)) for channel in ctx.guild.text_channels]
-        placeholder = f"Select a {channel_type} channel for {form_type}..."
-        super().__init__(placeholder=placeholder, options=options, min_values=1, max_values=1)
+        self.options = [discord.SelectOption(label=f"#{channel.name}", value=str(channel.id)) for channel in ctx.guild.text_channels]
+        self.placeholder = f"Select a {channel_type} channel for {form_type}..."
+        super().__init__(placeholder=self.placeholder, options=self.options, min_values=1, max_values=1)
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user != self.ctx.author:
