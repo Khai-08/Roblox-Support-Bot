@@ -31,10 +31,6 @@ python main.py
 ```
 
 ## Configuration
-The bot uses two environment modes:  
-- **development** → Reads config from `config/settings.development.json`  
-- **production** → Reads config from `config/settings.production.json`
-
 1. Inside the project root, create a folder named `config`.
 2. Inside `config/`, create a file named `bot_config.json` with the following content:
 ```json
@@ -50,6 +46,9 @@ The bot uses two environment modes:
 }
 ```
 3. In the same `config/` folder, create two separate files with same contents:
+  The bot uses two environment modes:  
+    - **development** → Reads config from `config/settings.development.json`  
+    - **production** → Reads config from `config/settings.production.json`
 
 **settings.development.json** & **settings.production.json**
 ```json
