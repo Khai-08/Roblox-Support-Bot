@@ -10,7 +10,7 @@ A support bot designed for **Roblox Game Communities** inspired by Davy Jones Bo
   Opens an admin-only interactive UI to set which channel handles Reports or Appeals.
 
 ## Installation
-1. Clone the repo
+1. Clone the repository
 2. Create a `.env` file:
   ```bash
   DISCORD_TOKEN=your_bot_token
