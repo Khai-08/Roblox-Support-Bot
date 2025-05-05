@@ -49,7 +49,7 @@ The bot uses two environment modes:
     "prefix": "Enter your bot prefix (e.g., . or !)"
 }
 ```
-3. In the same config/ folder, create two separate files with same contents:
+3. In the same `config/` folder, create two separate files with same contents:
 
 **settings.development.json** & **settings.production.json**
 ```json
