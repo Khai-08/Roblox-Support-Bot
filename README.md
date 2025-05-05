@@ -21,6 +21,12 @@ API_KEY="your-api-key"
    1. Log in to [Roblox Developer Dashboard](https://create.roblox.com/dashboard/credentials?activeTab=ApiKeysTab)
    2. Navigate to the API Keys under Open Cloud
    3. Create a new API Key.
+1. Dog
+    1. German Shepherd
+    2. Belgian Shepherd
+        1. Malinois
+        2. Groenendael
+        3. Tervuren
 4. Install requirements:
 ```bash
 pip install -r requirements.txt
