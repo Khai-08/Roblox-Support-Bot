@@ -46,6 +46,7 @@ python main.py
 }
 ```
 3. In the same `config/` folder, create two separate files with same contents:
+  
   The bot uses two environment modes:  
     - **development** → Reads config from `config/settings.development.json`  
     - **production** → Reads config from `config/settings.production.json`
