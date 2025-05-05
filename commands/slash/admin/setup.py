@@ -14,6 +14,9 @@ def setup(bot):
     )
     @app_commands.describe(form_channel="Select the channel where the form embed will be sent", pending_channel="Select the pending channel to post entries")
     async def setup(interaction: Interaction, type: app_commands.Choice[str], form_channel: discord.TextChannel, pending_channel: discord.TextChannel):
+        if not interaction.user.guild_permissions.administrator:
+            return await interaction.response.send_message(embed=discord.Embed(description="You do not have permission to use this command.", color=discord.Color.red()), ephemeral=True)
+        
         try:
             settings = bot.settings
             settings[type.value] = {
@@ -32,7 +35,7 @@ def setup(bot):
             else:
                 return
             embed.set_footer(text="If the button does not work, please inform a Moderator.")
-            
+
             form_view = FormView(bot=bot, form_type=type.value)
             await form_channel.send(embed=embed, view=form_view)
 
