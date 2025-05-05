@@ -46,6 +46,7 @@ python main.py
 }
 ```
 3. In the same config/ folder, create two separate files:
+
 **settings.development.json**
 ```
 {
