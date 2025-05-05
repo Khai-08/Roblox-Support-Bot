@@ -35,21 +35,16 @@ The bot uses two environment modes:
 - **development** → Reads config from `config/settings.development.json`  
 - **production** → Reads config from `config/settings.production.json`
 
-Set the mode via the `environment` key in `config/bot_config.json`:
-```json
-"environment": "development"  // or "production"
-```
-
 1. Inside the project root, create a folder named `config`.
 2. Inside `config/`, create a file named `bot_config.json` with the following content:
-```
+```json
 {
     "bot_stat": {
-        "presence": "Playing | Watching | Listening | Competing",
+        "presence": "Playing", // or Watching / Listening / Competing / Streaming
         "status": "Enter your custom status here"
     },
     "footer_text": "Enter footer text (e.g., your Discord link)",
-    "environment": "development | production",
+    "environment": "development", // or "production"
     "owner_id": 775966789950505002,
     "prefix": "Enter your bot prefix (e.g., . or !)"
 }
@@ -57,7 +52,7 @@ Set the mode via the `environment` key in `config/bot_config.json`:
 3. In the same config/ folder, create two separate files with same contents:
 
 **settings.development.json** & **settings.production.json**
-```
+```json
 {
     "reports": {
         "form_channel": "Enter the channel ID for report form submissions",
