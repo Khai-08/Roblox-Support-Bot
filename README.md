@@ -29,3 +29,49 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+## Configuration
+1. Inside the project root, create a folder named `config`.
+2. Inside `config/`, create a file named `bot_config.json` with the following content:
+```
+{
+    "bot_stat": {
+        "presence": "CHOOSE: Playing | Watching | Listening | Competing",
+        "status": "Enter your custom status here"
+    },
+    "footer_text": "Enter footer text (e.g., your Discord link)",
+    "environment": "CHOOSE: development | production",
+    "owner_id": 775966789950505002,
+    "prefix": "Enter your bot prefix (e.g., . or !)"
+}
+```
+3. In the same config/ folder, create two separate files:
+**settings.development.json**
+```
+{
+    "reports": {
+        "form_channel": "Enter the channel ID for report form submissions",
+        "pending_reports_channel": "Enter the channel ID to queue pending reports"
+    },
+    "appeals": {
+        "public_appeals_channel": "Enter the channel ID to post public appeals",
+        "form_appeals_channel": "Enter the channel ID for appeal form submissions",
+        "pending_appeals_channel": "Enter the channel ID to queue pending appeals"
+    }
+}
+```
+
+**settings.production.json**
+```
+{
+    "reports": {
+        "form_channel": "Enter the production channel ID for report form submissions",
+        "pending_reports_channel": "Enter the production channel ID to queue pending reports"
+    },
+    "appeals": {
+        "public_appeals_channel": "Enter the production channel ID to post public appeals",
+        "form_appeals_channel": "Enter the production channel ID for appeal form submissions",
+        "pending_appeals_channel": "Enter the production channel ID to queue pending appeals"
+    }
+}
+```
