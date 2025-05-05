@@ -7,7 +7,6 @@ from datetime import datetime
 from functools import wraps
 
 from utils.config_utils import ConfigurationUtils
-from utils.bot_utils import BotFunctions
 
 class FISCHBot(commands.Bot):
     def __init__(self):
@@ -29,7 +28,6 @@ class FISCHBot(commands.Bot):
         super().__init__(command_prefix=self.get_prefix_func(), intents=discord.Intents.all(), help_command=None)
 
         self.config_functions = ConfigurationUtils(self)
-        self.bot_functions = BotFunctions(self)
         self.setup_commands(self)
 
     def setup_commands(self, bot):
@@ -82,16 +80,6 @@ class FISCHBot(commands.Bot):
                     print(f"[{timestamp}] | FAILED | {ctx.user} used `{ctx.command.name}` in {ctx.guild.name}: {e}")
                     
         return wrapper
-
-    def command_enabled(self, command_name: str):
-        def decorator(func):
-            @wraps(func)
-            async def wrapper(interaction: discord.Interaction, *args, **kwargs):
-                if not self.bot_functions.sync_commands(interaction.guild.id, command_name):
-                    return await self.error_embed(interaction, f"**`{command_name.capitalize()}`** command is disabled.")
-                return await func(interaction, *args, **kwargs)
-            return wrapper
-        return decorator
     
     ## UTILS    
     async def send_embed(self, ctx_or_interaction, message: str, color: discord.Color):
