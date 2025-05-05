@@ -12,9 +12,9 @@ class GameFormDropdown(Select):
         self.channel_type = channel_type
         self.parent_view = parent_view
 
-        self.options = [discord.SelectOption(label=f"#{channel.name}", value=str(channel.id)) for channel in ctx.guild.text_channels]
-        self.placeholder = f"Select a {channel_type} channel for {form_type}..."
-        super().__init__(placeholder=self.placeholder, options=self.options, min_values=1, max_values=1)
+        options = [discord.SelectOption(label=f"#{channel.name}", value=str(channel.id)) for channel in ctx.guild.text_channels]
+        placeholder = f"Select a {channel_type} channel for {form_type}..."
+        super().__init__(placeholder=placeholder, options=options, min_values=1, max_values=1)
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user != self.ctx.author:
@@ -30,7 +30,7 @@ class GameFormDropdown(Select):
         settings[self.form_type][f"{self.channel_type}_{self.form_type}_channel"] = selected_channel.id
         ConfigurationUtils.save_config(f"config/settings.{self.bot.bot_config.get('environment').lower()}.json", settings)
 
-        success_embed = discord.Embed(description=f"**{self.form_type.capitalize()}** {self.channel_type} channel set to {selected_channel.mention}.", color=discord.Color.green())
+        success_embed = discord.Embed(description=f"{self.form_type.capitalize()} system successfully set up. Future submissions will be sent to {selected_channel.mention}.", color=discord.Color.green())
         for item in self.parent_view.children[:]:
             self.parent_view.remove_item(item)
         await interaction.response.edit_message(embed=success_embed, view=None)
@@ -66,7 +66,7 @@ def setup(bot):
 
             async def button_callback(interaction):
                 form_type = "reports" if interaction.data["custom_id"] == "reports_button" else "appeals"
-                form_embed = discord.Embed(title=f"Select {form_type.capitalize()} Form Channel", description="Select the channel where the form button will be posted.", color=discord.Color.green())
+                form_embed = discord.Embed(title=f"Select {form_type.capitalize()} Form Channel", description="Select the channel where the form embed will be sent.", color=discord.Color.green())
                 form_view = View(timeout=30)
                 form_view.add_item(GameFormDropdown(ctx, form_type, bot, form_view, "form"))
                 await interaction.response.edit_message(embed=form_embed, view=form_view)
@@ -74,7 +74,7 @@ def setup(bot):
                 def form_check(i): return i.user == ctx.author and i.message.id == interaction.message.id
                 await bot.wait_for("interaction", check=form_check, timeout=30)
 
-                pending_embed = discord.Embed(title=f"Select Pending {form_type.capitalize()} Channel", description="Select the channel where submitted entries will appear.", color=discord.Color.orange())
+                pending_embed = discord.Embed(title=f"Select Pending {form_type.capitalize()} Channel", description="Select the pending channel to post entries.", color=discord.Color.green())
                 pending_view = View(timeout=30)
                 pending_view.add_item(GameFormDropdown(ctx, form_type, bot, pending_view, "pending"))
                 await interaction.edit_original_response(embed=pending_embed, view=pending_view)
