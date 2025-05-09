@@ -119,7 +119,7 @@ class FISCHBot(commands.Bot):
 
         bot.add_view(FormView(bot, "appeals", self.db_connection))
         bot.add_view(FormView(bot, "reports", self.db_connection))
-        
+
         self.start_time = time.time()
         await bot.tree.sync()
 
