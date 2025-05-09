@@ -7,6 +7,7 @@ from datetime import datetime
 from functools import wraps
 
 from utils.config_utils import ConfigurationUtils
+from config.db_config import get_db_connection
 
 class FISCHBot(commands.Bot):
     def __init__(self):
@@ -17,6 +18,7 @@ class FISCHBot(commands.Bot):
         
         self.bot_config = ConfigurationUtils.load_config(os.path.join('config', 'bot_config.json'))
         self.settings = ConfigurationUtils.load_config(f"config/settings.{self.bot_config.get("environment").lower()}.json")
+        self.db_connection = get_db_connection(self.settings)
 
         self.embed_color = discord.Color.from_rgb(255, 164, 188)
         self.footer_text = self.bot_config.get("footer_text")
