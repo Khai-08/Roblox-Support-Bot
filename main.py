@@ -17,7 +17,11 @@ class FISCHBot(commands.Bot):
             raise ValueError("BOT_TOKEN not found in environment variables. Please ensure it is set in the .env file.")
         
         self.bot_config = ConfigurationUtils.load_config(os.path.join('config', 'bot_config.json'))
-        self.settings = ConfigurationUtils.load_config(f"config/settings.{self.bot_config.get("environment").lower()}.json")
+        settings_file = f"config/settings.{self.bot_config.get('environment').lower()}.json"
+        if not os.path.exists(settings_file):
+            print(f"Settings file {settings_file} is missing. Creating default settings file.")
+            ConfigurationUtils.default_settings(settings_file)
+        self.settings = ConfigurationUtils.load_config(settings_file)
         self.db_connection = get_db_connection(self.settings)
 
         self.embed_color = discord.Color.from_rgb(255, 164, 188)
