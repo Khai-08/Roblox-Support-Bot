@@ -12,7 +12,7 @@ A support bot designed for **Roblox Game Communities** inspired by Davy Jones Bo
 1. Clone the repository
 2. Create a `.env` file:
   ```bash
-  DISCORD_TOKEN=your_bot_token
+  DISCORD_TOKEN="your_bot_token"
   API_BASE_URL="https://apis.roblox.com/"
   API_KEY="your-api-key"
   ```
