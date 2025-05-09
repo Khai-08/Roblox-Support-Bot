@@ -253,8 +253,8 @@ class FormActionView(View):
             return await interaction.response.send_message(embed=discord.Embed(description="You do not have permission to use this command.", color=discord.Color.red()), ephemeral=True)
         
         await interaction.response.send_modal(RejectReasonModal(bot=self.bot, user=self.user, form_type=self.form_type, db_connection=self.db_connection, message=self.message, name=self.name, ban_reason=self.ban_reason, appeal_reason=self.appeal_reason, additional_info=self.additional_info, report_id=self.report_id))
-
-
+    
+    
 class FormButton(discord.ui.Button):
     def __init__(self, form_type):
         super().__init__(label="Create Form", style=discord.ButtonStyle.blurple, custom_id=f"create_form_{form_type}_btn")
