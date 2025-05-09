@@ -7,6 +7,7 @@ from datetime import datetime
 from functools import wraps
 
 from utils.config_utils import ConfigurationUtils
+from utils.modals.form_modal import FormView, FormActionView
 from config.db_config import get_db_connection
 
 class FISCHBot(commands.Bot):
@@ -116,6 +117,9 @@ class FISCHBot(commands.Bot):
         }.get(self.presence.lower(), discord.ActivityType.playing)
         await self.change_presence(activity=discord.Activity(type=presence_mapping, name=self.stat))
 
+        bot.add_view(FormView(bot, "appeals", self.db_connection))
+        bot.add_view(FormView(bot, "reports", self.db_connection))
+        
         self.start_time = time.time()
         await bot.tree.sync()
 
