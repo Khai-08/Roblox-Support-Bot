@@ -6,8 +6,7 @@ A support bot designed for **Roblox Game Communities** inspired by Davy Jones Bo
 - Lightweight and easy to integrate into any Roblox game's Discord
 
 ## Commands
-- `/setup` or `!setup`  
-  Opens an admin-only interactive UI to set which channel handles Reports or Appeals.
+- `/setup`: Configures the channels that handle Reports and Appeals forms.
 
 ## Installation
 1. Clone the repository
