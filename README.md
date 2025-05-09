@@ -45,9 +45,9 @@ A support bot designed for **Roblox Game Communities** inspired by Davy Jones Bo
   }
   ```
 3. To import the database tables into MySQL:
-  - Open your MySQL client (e.g., phpMyAdmin or MySQL CLI).
-  - Create a database with a name of your choice.
-  - Import the file located at config/database.sql.
+    - Open your MySQL client (e.g., phpMyAdmin or MySQL CLI).
+    - Create a database with a name of your choice.
+    - Import the file located at config/database.sql.
 4. Inside `config/`, update the settings.development.json or settings.production.json file with the correct database credentials. The default settings are:
     ```json
     {
