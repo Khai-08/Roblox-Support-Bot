@@ -11,9 +11,13 @@ async def fetch_user_data(user_id: int, endpoint: str) -> dict:
             return await resp.json()
 
 async def fetch_user_info(user_id: int) -> dict:
-    data = await fetch_user_data(user_id, "")
-    return {"id": data["id"], "name": data["name"], "displayName": data["displayName"]}
+    try: 
+        data = await fetch_user_data(user_id, "")
+        return { "id": data["id"], "name": data["name"], "displayName": data["displayName"]}
+    except KeyError: return None
 
 async def fetch_user_thumbnail(user_id: int) -> str:
-    data = await fetch_user_data(user_id, ":generateThumbnail")
-    return data.get("response", {}).get("imageUri", "")
+    try: 
+        data = await fetch_user_data(user_id, ":generateThumbnail")
+        return data.get("response", {}).get("imageUri", "")
+    except KeyError: return None
