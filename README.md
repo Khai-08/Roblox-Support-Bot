@@ -44,23 +44,20 @@ A support bot designed for **Roblox Game Communities** inspired by Davy Jones Bo
       "prefix": "Enter your bot prefix (e.g., . or !)"
   }
   ```
-3. In the same `config/` folder, create two separate files with same contents:
-  
-    The bot uses two environment modes:  
-    - **development** → Reads config from `config/settings.development.json`  
-    - **production** → Reads config from `config/settings.production.json`
-
-    **settings.development.json** & **settings.production.json**
+3. To import the database tables into MySQL:
+  - Open your MySQL client (e.g., phpMyAdmin or MySQL CLI).
+  - Create a database with a name of your choice.
+  - Import the file located at config/database.sql.
+4. Inside `config/`, update the settings.development.json or settings.production.json file with the correct database credentials. The default settings are:
     ```json
     {
-        "reports": {
-            "form_channel": "Enter the channel ID for report form submissions",
-            "pending_reports_channel": "Enter the channel ID to queue pending reports"
-        },
-        "appeals": {
-            "public_appeals_channel": "Enter the channel ID to post public appeals",
-            "form_appeals_channel": "Enter the channel ID for appeal form submissions",
-            "pending_appeals_channel": "Enter the channel ID to queue pending appeals"
-        }
+      "database": {
+          "host": "localhost",
+          "user": "root",
+          "password": "",
+          "database": "your-database-name"
+      },
+      "reports": {},
+      "appeals": {}
     }
     ```
