@@ -36,7 +36,7 @@ def setup(bot):
                 return
             embed.set_footer(text="If the button does not work, please inform a Moderator.")
 
-            form_view = FormView(bot=bot, form_type=type.value)
+            form_view = FormView(bot=bot, form_type=type.value, db_connection=bot.db_connection)
             await form_channel.send(embed=embed, view=form_view)
 
         except Exception as e:
