@@ -45,7 +45,7 @@ class ReportFormModal(Modal, title="Game Report Form"):
                 cursor.execute(
                     "INSERT INTO game_reports (exploiter_id, reason, evidence, additional_info, status, submitted_by, created_at) "
                     "VALUES (%s, %s, %s, %s, %s, %s, NOW())",
-                    (self.user_id.value, self.reason.value, self.evidence.value, self.additional_info.value or "N/A", "Waiting for admin/staff response...", str(interaction.user))
+                    (self.user_id.value, self.reason.value, self.evidence.value, self.additional_info.value or "N/A", "Waiting for admin/staff response...", interaction.user.id)
                 )
             self.db_connection.commit()
             appeal_id = cursor.lastrowid
@@ -112,7 +112,7 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
                 cursor.execute(
                     "INSERT INTO game_appeals (exploiter_id, ban_reason, appeal_reason, additional_info, status, submitted_by, created_at) "
                     "VALUES (%s, %s, %s, %s, %s, %s, NOW())",
-                    (self.user_id.value, self.ban_reason.value, self.appeal_reason.value, self.additional_info.value or "N/A", "Waiting for admin/staff response...", str(interaction.user))
+                    (self.user_id.value, self.ban_reason.value, self.appeal_reason.value, self.additional_info.value or "N/A", "Waiting for admin/staff response...", interaction.user.id)
                 )
             self.db_connection.commit()
             appeal_id = cursor.lastrowid
@@ -212,9 +212,12 @@ class FormActionView(View):
             embed = interaction.message.embeds[0]
             form_type = embed.title.lower()
             report_id = int(embed.footer.text.split("RPT-")[-1])
-
-            table = "game_reports" if "report" in form_type else "game_appeals"
-            id_col = "report_id" if "report" in form_type else "appeal_id"
+            if "appeal" in form_type:
+                table = "game_appeals"
+                id_col = "appeal_id"
+            else:
+                table = "game_reports"
+                id_col = "report_id"
 
             with self.db_connection.cursor() as cursor:
                 cursor.execute(f"UPDATE {table} SET status = %s WHERE {id_col} = %s", ("Approved", report_id))
