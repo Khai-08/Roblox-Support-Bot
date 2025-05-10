@@ -11,7 +11,7 @@ class ReportFormModal(Modal, title="Game Report Form"):
 
         self.user_id = TextInput(label="Reported Roblox User ID", placeholder="Enter the Roblox User ID", required=True)
         self.reason = TextInput(label="Reason", placeholder="Describe what the player did wrong", style=discord.TextStyle.paragraph, max_length=1024, required=True)
-        self.evidence = TextInput(label="Evidence", placeholder="Provide links to images/videos or describe the evidence", style=discord.TextStyle.short, max_length=500, required=True)
+        self.evidence = TextInput(label="Evidence", placeholder="Provide links to images/videos or describe the evidence", style=discord.TextStyle.paragraph, max_length=1024, required=True)
         self.additional_info = TextInput(label="Additional Information", style=discord.TextStyle.paragraph, max_length=1024, required=False)
 
         self.add_item(self.user_id)
@@ -212,7 +212,6 @@ class FormActionView(View):
             embed = interaction.message.embeds[0]
             form_type = embed.title.lower()
             report_id = int(embed.footer.text.split("RPT-")[-1])
-            user_id = int(embed.footer.text.split("User: ")[-1])
 
             table = "game_reports" if "report" in form_type else "game_appeals"
             id_col = "report_id" if "report" in form_type else "appeal_id"
@@ -224,10 +223,9 @@ class FormActionView(View):
             embed.set_field_at(-1, name="Status", value="✅ Approved", inline=False)
             await self.message.edit(embed=embed, view=None)
             
-            user = await self.bot.fetch_user(user_id)
             dm_embed = discord.Embed(title=f"{self.form_type.capitalize()} Approved", description="Your game report has been reviewed and processed. The reported user has been moderated." if self.form_type == "report" else "Your appeal has been reviewed and approved. Your ban has been lifted.", color=discord.Color.green())
             dm_embed.set_footer(text="This is an automated message.")
-            await user.send(embed=dm_embed)
+            await self.user.send(embed=dm_embed)
             await self.bot.success_embed(interaction, "Form has been approved and the user has been notified.")
 
             if self.form_type == "appeal":
