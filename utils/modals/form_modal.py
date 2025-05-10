@@ -1,6 +1,6 @@
-import discord, mysql.connector
+import discord
 from discord.ui import Modal, TextInput, View, Button
-from utils.api_utils import fetch_user_thumbnail, fetch_user_info
+from utils.api_utils import fetch_user_thumbnail_v1, fetch_user_info_v1, fetch_user_thumbnail_v2, fetch_user_info_v2
 
 class ReportFormModal(Modal, title="Game Report Form"):
     def __init__(self, bot, db_connection):
@@ -10,9 +10,9 @@ class ReportFormModal(Modal, title="Game Report Form"):
         self.db_connection = db_connection
 
         self.user_id = TextInput(label="Reported Roblox User ID", placeholder="Enter the Roblox User ID", required=True)
-        self.reason = TextInput(label="Reason", placeholder="Describe what the player did wrong", style=discord.TextStyle.paragraph, required=True)
-        self.evidence = TextInput(label="Evidence", placeholder="Provide links to images/videos or describe the evidence", style=discord.TextStyle.paragraph, required=True)
-        self.additional_info = TextInput(label="Additional Information", style=discord.TextStyle.paragraph, required=False)
+        self.reason = TextInput(label="Reason", placeholder="Describe what the player did wrong", style=discord.TextStyle.paragraph, max_length=1024, required=True)
+        self.evidence = TextInput(label="Evidence", placeholder="Provide links to images/videos or describe the evidence", style=discord.TextStyle.short, max_length=500, required=True)
+        self.additional_info = TextInput(label="Additional Information", style=discord.TextStyle.paragraph, max_length=1024, required=False)
 
         self.add_item(self.user_id)
         self.add_item(self.reason)
@@ -24,21 +24,21 @@ class ReportFormModal(Modal, title="Game Report Form"):
         pending_channel_id = settings.get(self.form_type, {}).get("pending_reports_channel")
 
         if not pending_channel_id:
-            return await interaction.response.send_message(embed=discord.Embed(description="Pending channel not set up. Please contact an admin.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "Pending channel not set up. Please contact an admin.")
 
         pending_channel = interaction.guild.get_channel(pending_channel_id)
         if not pending_channel:
-            return await interaction.response.send_message(embed=discord.Embed(description="Pending channel is invalid or missing.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "Pending channel is invalid or missing.")
 
         user_id_input = self.user_id.value.strip()
         if user_id_input.isdigit():
             user_id = int(user_id_input)
         else:
-            return await interaction.response.send_message(embed=discord.Embed(description="Invalid Roblox User ID. Please enter a valid numeric User ID.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "Invalid Roblox User ID. Please enter a valid numeric User ID.")
         
-        user_info = await fetch_user_info(user_id)
+        user_info = await fetch_user_info_v2(user_id)
         if not user_info:
-            return await interaction.response.send_message(embed=discord.Embed(description="Failed to fetch user info. Please ensure the User ID is correct and exists.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "Failed to fetch user info. Please ensure the User ID is correct and exists.")
 
         try:
             with self.db_connection.cursor() as cursor:
@@ -49,7 +49,7 @@ class ReportFormModal(Modal, title="Game Report Form"):
                 )
             self.db_connection.commit()
             appeal_id = cursor.lastrowid
-            await interaction.response.send_message(embed=discord.Embed(description="Your report has been submitted.", color=discord.Color.green()), ephemeral=True)
+            await self.bot.success_embed(interaction, "Your report has been submitted.")
         
             embed = discord.Embed(title="New Game Report", color=discord.Color.blue())
             embed.add_field(name="Roblox Username", value=f"[{user_info['displayName']} (@{user_info['name']})](https://www.roblox.com/users/{user_info['id']}/profile)", inline=False)
@@ -59,14 +59,14 @@ class ReportFormModal(Modal, title="Game Report Form"):
                 embed.add_field(name="Additional Info", value=self.additional_info.value, inline=False)
             embed.add_field(name="Status", value="Waiting for admin/staff response...", inline=False)
             embed.set_footer(text=f"Submitted by {interaction.user} | RPT-{appeal_id}", icon_url=interaction.user.display_avatar.url)
-            embed.set_thumbnail(url=await fetch_user_thumbnail(self.user_id.value))
+            embed.set_thumbnail(url=await fetch_user_thumbnail_v2(self.user_id.value))
 
             view = FormActionView(self.bot, interaction.user, "report", db_connection=self.db_connection, report_id=appeal_id)
             sent_message = await pending_channel.send(embed=embed, view=view)
             view.message = sent_message
 
-        except mysql.connector.Error as err:
-            await interaction.response.send_message(embed=discord.Embed(description=f"Database error: {err}", color=discord.Color.red()), ephemeral=True)
+        except Exception as e:
+            await self.bot.error_embed(interaction, f"Error: {e}")
 
 
 class AppealFormModal(Modal, title="Game Appeal Form"):
@@ -77,9 +77,9 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
         self.db_connection = db_connection
 
         self.user_id = TextInput(label="Roblox User ID", required=True)
-        self.ban_reason = TextInput(label="Ban Reason", required=True)
-        self.appeal_reason = TextInput(label="Reason For Appeal", style=discord.TextStyle.paragraph, required=True)
-        self.additional_info = TextInput(label="Additional Information", style=discord.TextStyle.paragraph, required=False)
+        self.ban_reason = TextInput(label="Ban Reason", style=discord.TextStyle.short, max_length=50, required=True)
+        self.appeal_reason = TextInput(label="Reason For Appeal", style=discord.TextStyle.paragraph, max_length=1024, required=True)
+        self.additional_info = TextInput(label="Additional Information", style=discord.TextStyle.paragraph, max_length=1024, required=False)
 
         self.add_item(self.user_id)
         self.add_item(self.ban_reason)
@@ -91,21 +91,21 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
         pending_channel_id = settings.get(self.form_type, {}).get("pending_appeals_channel")
 
         if not pending_channel_id:
-            return await interaction.response.send_message(embed=discord.Embed(description="Pending channel not set up. Please contact an admin.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "Pending channel not set up. Please contact an admin.")
 
         pending_channel = interaction.guild.get_channel(pending_channel_id)
         if not pending_channel:
-            return await interaction.response.send_message(embed=discord.Embed(description="Pending channel is invalid or missing.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "Pending channel is invalid or missing.")
         
         user_id_input = self.user_id.value.strip()
         if user_id_input.isdigit():
             user_id = int(user_id_input)
         else:
-            return await interaction.response.send_message(embed=discord.Embed(description="Invalid Roblox User ID. Please enter a valid numeric User ID.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "Invalid Roblox User ID. Please enter a valid numeric User ID.")
         
-        user_info = await fetch_user_info(user_id)
+        user_info = await fetch_user_info_v2(user_id)
         if not user_info:
-            return await interaction.response.send_message(embed=discord.Embed(description="Failed to fetch user info. Please ensure the User ID is correct and exists.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "Failed to fetch user info. Please ensure the User ID is correct and exists.")
 
         try:
             with self.db_connection.cursor() as cursor:
@@ -116,7 +116,7 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
                 )
             self.db_connection.commit()
             appeal_id = cursor.lastrowid
-            await interaction.response.send_message(embed=discord.Embed(description="Your appeal has been submitted.", color=discord.Color.green()), ephemeral=True)
+            await self.bot.success_embed(interaction, "Your appeal has been submitted.")
 
             embed = discord.Embed(title="New Appeal Report", color=discord.Color.blue())
             embed.add_field(name="Roblox Username", value=f"[{user_info['displayName']} (@{user_info['name']})](https://www.roblox.com/users/{user_info['id']}/profile)", inline=False)
@@ -126,14 +126,14 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
                 embed.add_field(name="Additional Info", value=self.additional_info.value, inline=False)
             embed.add_field(name="Status", value="Waiting for admin/staff response...", inline=False)
             embed.set_footer(text=f"Submitted by {interaction.user} | RPT-{appeal_id}", icon_url=interaction.user.display_avatar.url)
-            embed.set_thumbnail(url=await fetch_user_thumbnail(self.user_id.value))
+            embed.set_thumbnail(url=await fetch_user_thumbnail_v2(self.user_id.value))
 
             view = FormActionView(self.bot, interaction.user, "appeal", db_connection=self.db_connection, name=user_info["name"], ban_reason=self.ban_reason.value, appeal_reason=self.appeal_reason.value, additional_info=self.additional_info.value, report_id=appeal_id)
             sent_message = await pending_channel.send(embed=embed, view=view)
             view.message = sent_message
 
-        except mysql.connector.Error as err:
-            await interaction.response.send_message(embed=discord.Embed(description=f"Database error: {err}", color=discord.Color.red()), ephemeral=True)
+        except Exception as e:
+            await self.bot.error_embed(interaction, f"Error: {e}")
 
 
 class RejectReasonModal(Modal, title="Rejection Reason"):
@@ -169,7 +169,7 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
             user_embed.add_field(name="Reason", value=self.reason.value, inline=False)
             user_embed.set_footer(text="This is an automated message.")
             await self.user.send(embed=user_embed)
-            await interaction.response.send_message(embed=discord.Embed(description="Rejection submitted. The user has been notified.", color=discord.Color.green()), ephemeral=True)
+            await self.bot.success_embed(interaction, "Rejection submitted. The user has been notified.")
 
             if self.form_type == "appeal":
                 channel_id = self.bot.settings.get("appeals", {}).get("public_appeals_channel")
@@ -186,7 +186,7 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
                     await channel.send(embed=embed)
 
         except Exception as e:
-            await interaction.response.send_message(f"Error: {e}", ephemeral=True)
+            await self.bot.error_embed(interaction, f"Error: {e}")
 
 
 class FormActionView(View):
@@ -206,12 +206,12 @@ class FormActionView(View):
     @discord.ui.button(label="Approve", style=discord.ButtonStyle.green, custom_id="approve_btn")
     async def approve(self, interaction: discord.Interaction, button: Button):
         if not interaction.user.guild_permissions.administrator:
-            return await interaction.response.send_message(embed=discord.Embed(description="You do not have permission to use this command.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "You do not have permission to use this command.")
         
         try:            
             embed = interaction.message.embeds[0]
             form_type = embed.title.lower()
-            report_id = int(embed.footer.text.split("ID: ")[-1])
+            report_id = int(embed.footer.text.split("RPT-")[-1])
             user_id = int(embed.footer.text.split("User: ")[-1])
 
             table = "game_reports" if "report" in form_type else "game_appeals"
@@ -228,7 +228,7 @@ class FormActionView(View):
             dm_embed = discord.Embed(title=f"{self.form_type.capitalize()} Approved", description="Your game report has been reviewed and processed. The reported user has been moderated." if self.form_type == "report" else "Your appeal has been reviewed and approved. Your ban has been lifted.", color=discord.Color.green())
             dm_embed.set_footer(text="This is an automated message.")
             await user.send(embed=dm_embed)
-            await interaction.response.send_message(embed=discord.Embed(description="Form has been approved and the user has been notified.", color=discord.Color.green()), ephemeral=True)
+            await self.bot.success_embed(interaction, "Form has been approved and the user has been notified.")
 
             if self.form_type == "appeal":
                 channel_id = self.bot.settings.get("appeals", {}).get("public_appeals_channel")
@@ -250,7 +250,7 @@ class FormActionView(View):
     @discord.ui.button(label="Reject", style=discord.ButtonStyle.danger, custom_id="reject_btn")
     async def reject(self, interaction: discord.Interaction, button: Button):
         if not interaction.user.guild_permissions.administrator:
-            return await interaction.response.send_message(embed=discord.Embed(description="You do not have permission to use this command.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.error_embed(interaction, "You do not have permission to use this command.")
         
         await interaction.response.send_modal(RejectReasonModal(bot=self.bot, user=self.user, form_type=self.form_type, db_connection=self.db_connection, message=self.message, name=self.name, ban_reason=self.ban_reason, appeal_reason=self.appeal_reason, additional_info=self.additional_info, report_id=self.report_id))
     
@@ -263,7 +263,7 @@ class FormButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         view: FormView = self.view
         if not view.bot or not view.form_type:
-            return await interaction.response.send_message(embed=discord.Embed(description="Form is not properly configured.", color=discord.Color.red()), ephemeral=True)
+            return await self.bot.warning_embed(interaction, "Form is not properly configured.")
 
         if view.form_type == "reports":
             await interaction.response.send_modal(ReportFormModal(bot=view.bot, db_connection=view.db_connection))
