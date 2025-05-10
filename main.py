@@ -93,9 +93,9 @@ class FISCHBot(commands.Bot):
         embed = discord.Embed(description=message, color=color)
         if isinstance(ctx_or_interaction, discord.Interaction):
             if not ctx_or_interaction.response.is_done():
-                await ctx_or_interaction.response.send_message(embed=embed, ephemeral=False)
+                await ctx_or_interaction.response.send_message(embed=embed, ephemeral=True)
             else:
-                await ctx_or_interaction.followup.send(embed=embed, ephemeral=False)
+                await ctx_or_interaction.followup.send(embed=embed, ephemeral=True)
         else:
             await ctx_or_interaction.reply(embed=embed, mention_author=False)
 
