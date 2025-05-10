@@ -20,8 +20,7 @@ class ReportFormModal(Modal, title="Game Report Form"):
         self.add_item(self.additional_info)
 
     async def on_submit(self, interaction: discord.Interaction):
-        settings = self.bot.settings
-        pending_channel_id = settings.get(self.form_type, {}).get("pending_reports_channel")
+        pending_channel_id = self.bot.settings.get(self.form_type, {}).get("pending_reports_channel")
 
         if not pending_channel_id:
             return await self.bot.error_embed(interaction, "Pending channel not set up. Please contact an admin.")
@@ -87,9 +86,7 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
         self.add_item(self.additional_info)
 
     async def on_submit(self, interaction: discord.Interaction):
-        settings = self.bot.settings
-        pending_channel_id = settings.get(self.form_type, {}).get("pending_appeals_channel")
-
+        pending_channel_id = self.bot.settings.get(self.form_type, {}).get("pending_appeals_channel")
         if not pending_channel_id:
             return await self.bot.error_embed(interaction, "Pending channel not set up. Please contact an admin.")
 
