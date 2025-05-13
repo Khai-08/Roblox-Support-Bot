@@ -39,6 +39,16 @@ class ReportFormModal(Modal, title="Game Report Form"):
         if not user_info:
             return await self.bot.error_embed(interaction, "Failed to fetch user info. Please ensure the User ID is correct and exists.")
 
+        with self.db_connection.cursor() as cursor:
+            cursor.execute("SELECT status FROM game_reports WHERE exploiter_id = %s ORDER BY created_at DESC LIMIT 1", (user_id,))
+            existing = cursor.fetchone()
+            if existing:
+                status = existing[0]
+                if status == "Approved":
+                    return await self.bot.error_embed(interaction, "This user has already been moderated.")
+                else:
+                    return await self.bot.error_embed(interaction, "This user already has a pending or active report.")   
+
         try:
             with self.db_connection.cursor() as cursor:
                 cursor.execute(
@@ -104,6 +114,12 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
         if not user_info:
             return await self.bot.error_embed(interaction, "Failed to fetch user info. Please ensure the User ID is correct and exists.")
 
+        with self.db_connection.cursor() as cursor: 
+            cursor.execute("SELECT status FROM game_appeals WHERE exploiter_id = %s ORDER BY created_at DESC LIMIT 1", (user_id,))
+            result = cursor.fetchone()
+            if result and result[0].lower() == "rejected":
+                return await self.bot.error_embed(interaction, "This user is already moderated. You cannot submit another appeal.")
+                
         try:
             with self.db_connection.cursor() as cursor:
                 cursor.execute(
