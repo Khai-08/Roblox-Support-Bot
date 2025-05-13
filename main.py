@@ -7,7 +7,7 @@ from datetime import datetime
 from functools import wraps
 
 from utils.config_utils import ConfigurationUtils
-from utils.modals.form_modal import FormView, FormActionView
+from utils.modals.form_modal import FormView
 from config.db_config import get_db_connection
 
 class FISCHBot(commands.Bot):
@@ -32,13 +32,12 @@ class FISCHBot(commands.Bot):
         self.owner = self.bot_config.get("owner_id")
         self.stat = self.bot_stat.get("status")
         
-        super().__init__(command_prefix=self.get_prefix_func(), intents=discord.Intents.all(), help_command=None)
+        super().__init__(intents=discord.Intents.all(), help_command=None)
 
         self.config_functions = ConfigurationUtils(self)
         self.setup_commands(self)
 
     def setup_commands(self, bot):
-        self.load_commands('commands/legacy', bot)
         self.load_commands('commands/slash', bot)
 
     def load_commands(self, folder_path, bot):
@@ -56,11 +55,6 @@ class FISCHBot(commands.Bot):
                         module.setup(bot)
                     else:
                         print(f"Warning: The module {module_name} does not have a setup function.")
-
-    def get_prefix_func(self):
-        async def dynamic_prefix(bot, message):
-            return self.bot_config.get("prefix")
-        return dynamic_prefix
 
     def run(self):
         super().run(self.bot_token, reconnect=True)
@@ -128,36 +122,11 @@ bot = FISCHBot()
 @bot.event
 async def on_message(message):
     if message.author != bot.user and bot.user.mentioned_in(message):
-        prefix = await bot.get_prefix_func()(bot, message)
-        embed = discord.Embed(title="", description=f"**Bot Prefix**: **`{prefix}`** \n\nEncountered any issues or bugs? Please DM <@775966789950505002>", color=bot.embed_color)
+        embed = discord.Embed(title="", description="Encountered any issues or bugs? Please DM <@775966789950505002>", color=bot.embed_color)
         embed.set_footer(text=bot.footer_text, icon_url=bot.user.avatar.with_format('png'))
         embed.set_thumbnail(url=bot.user.avatar.with_format('png'))
         await message.channel.send(embed=embed)
-        
     await bot.process_commands(message)
-
-# Global Legacy Command Error Handler 
-@bot.event
-async def on_command_error(ctx, error):
-    prefix = await bot.get_prefix_func()(bot, ctx.message)
-
-    if isinstance(error, commands.MissingPermissions):
-        await bot.error_embed(ctx, "You do not have permission to use this command.")
-        
-    elif isinstance(error, commands.BotMissingPermissions):
-        await bot.error_embed(ctx, "I do not have permission to perform this action.")
-
-    elif isinstance(error, commands.DisabledCommand):
-        await bot.error_embed(ctx, f"**`{ctx.command.name.capitalize()}`** command is disabled.")
-
-    elif isinstance(error, commands.BadArgument):
-        await bot.error_embed(ctx, f"Invalid argument format. Check `{prefix}help {ctx.command}` for more info.")
-
-    elif isinstance(error, commands.CommandOnCooldown):
-        await bot.error_embed(ctx, f'This command is on cooldown. Please try again in **`{error.retry_after:.0f}s`**.')
-
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await bot.error_embed(ctx, f"Missing a required argument for this command. Check `{prefix}help {ctx.command}` for more info.")
 
 
 # Global Slash Command Error Handler 
