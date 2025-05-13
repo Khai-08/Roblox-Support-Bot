@@ -21,6 +21,7 @@ class EvidenceSubmissionModal(Modal, title="Submit Updated Evidence"):
             user_embed = discord.Embed(title=f"RPT-{self.report_id} Submitted", description="Your updated evidence has been recorded. This helps us maintain proper documentation for the case.", color=discord.Color.green())
             user_embed.set_footer(text="This is an automated message.")
             await self.message.edit(embed=user_embed, view=None)
+            await self.bot.success_embed(interaction, "The updated evidence has been submitted successfully.")
         
         except Exception as e:
             await self.bot.error_embed(interaction, f"Failed to process: {e}")
