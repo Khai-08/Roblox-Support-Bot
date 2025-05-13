@@ -32,7 +32,7 @@ class FISCHBot(commands.Bot):
         self.owner = self.bot_config.get("owner_id")
         self.stat = self.bot_stat.get("status")
         
-        super().__init__(intents=discord.Intents.all(), help_command=None)
+        super().__init__(command_prefix="!",intents=discord.Intents.all(), help_command=None)
 
         self.config_functions = ConfigurationUtils(self)
         self.setup_commands(self)
@@ -122,9 +122,8 @@ bot = FISCHBot()
 @bot.event
 async def on_message(message):
     if message.author != bot.user and bot.user.mentioned_in(message):
-        embed = discord.Embed(title="", description="Encountered any issues or bugs? Please DM <@775966789950505002>", color=bot.embed_color)
-        embed.set_footer(text=bot.footer_text, icon_url=bot.user.avatar.with_format('png'))
-        embed.set_thumbnail(url=bot.user.avatar.with_format('png'))
+        embed = discord.Embed(description="Encountered any issues or bugs? Please DM <@775966789950505002>", color=bot.embed_color)
+        embed.set_footer(text=bot.footer_text, icon_url=bot.user.avatar.url)
         await message.channel.send(embed=embed)
     await bot.process_commands(message)
 
