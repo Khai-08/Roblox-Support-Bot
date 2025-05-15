@@ -28,37 +28,37 @@ class EvidenceSubmissionModal(Modal, title="Submit Updated Evidence"):
 
 
 class EvidenceRequestView(View):
-    def __init__(self, bot, db_connection, report_id):
+    def __init__(self, bot, db_connection):
         super().__init__(timeout=None)
         self.bot = bot
         self.db_connection = db_connection
-        self.report_id = report_id
 
     @discord.ui.button(label="Request Updated Evidence", style=discord.ButtonStyle.primary, custom_id="evidence_button")
     async def submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        modal = EvidenceSubmissionModal(self.bot, self.db_connection, self.report_id, interaction.message)
+        report_id = int(interaction.message.embeds[0].title.split("RPT-")[-1].split()[0])
+        modal = EvidenceSubmissionModal(self.bot, self.db_connection, report_id, interaction.message)
         await interaction.response.send_modal(modal)
 
 
 class ReportActionView(View):
-    def __init__(self, bot, user, db_connection, report_id):
+    def __init__(self, bot, user, db_connection):
         super().__init__(timeout=None)
         self.bot = bot
         self.user = user
         self.db_connection = db_connection
-        self.report_id = report_id
 
-    @discord.ui.button(label="Request Evidence Update", style=discord.ButtonStyle.green, custom_id="evidence_update")
+    @discord.ui.button(label="Request Evidence Update", style=discord.ButtonStyle.primary, custom_id="evidence_update")
     async def evidence_update(self, interaction: discord.Interaction, button: Button):
         try:
+            report_id = int(interaction.message.embeds[0].footer.text.split("RPT-")[-1].split()[0])
             with self.db_connection.cursor() as cursor:
-                cursor.execute("SELECT submitted_by FROM game_reports WHERE report_id = %s", (self.report_id,))
+                cursor.execute("SELECT submitted_by FROM game_reports WHERE report_id = %s", (report_id,))
                 result = cursor.fetchone()
                 
             user = await self.bot.fetch_user(result[0])
-            user_embed = discord.Embed(title=f"Request for Updated RPT-{self.report_id} Evidence", description="Hello, we're following up on your previous report. To help us maintain proper records of banned users, we need updated evidence. Please provide it at your earliest convenience.", color=discord.Color.blue())      
+            user_embed = discord.Embed(title=f"Request for Updated RPT-{report_id} Evidence", description="Hello, we're following up on your previous report. To help us maintain proper records of banned users, we need updated evidence. Please provide it at your earliest convenience.", color=discord.Color.blue())      
             user_embed.set_footer(text="This is an automated message.")
-            view = EvidenceRequestView(self.bot, self.db_connection, self.report_id)
+            view = EvidenceRequestView(self.bot, self.db_connection)
             await user.send(embed=user_embed, view=view)
             await self.bot.success_embed(interaction, "User has been notified to provide updated evidence.")
 
