@@ -41,9 +41,9 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
         with self.db_connection.cursor() as cursor: 
             cursor.execute("SELECT status FROM game_appeals WHERE exploiter_id = %s ORDER BY created_at DESC LIMIT 1", (user_id,))
             result = cursor.fetchone()
-            if result and result[0] == "Approved":
+            if result and result[0] == "Rejected":
                 return await self.bot.error_embed(interaction, "This user has already been moderated. You cannot submit another appeal.")
-            elif result and result[0] != "Rejected":
+            elif result and result[0] not in ("Approved", "Rejected"):    
                 return await self.bot.error_embed(interaction, "This user already has a pending or active appeal.")
                 
         try:
