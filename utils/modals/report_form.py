@@ -40,12 +40,10 @@ class ReportFormModal(Modal, title="Game Report Form"):
 
         with self.db_connection.cursor() as cursor:
             cursor.execute("SELECT status FROM game_reports WHERE exploiter_id = %s ORDER BY created_at DESC LIMIT 1", (user_id,))
-            existing = cursor.fetchone()
-            if existing:
-                status = existing[0]
-                if status == "Approved":
-                    return await self.bot.error_embed(interaction, "This user has already been moderated.")
-                elif status != "Rejected":
+            result = cursor.fetchone()
+            if result and result[0] == "Approved":
+                return await self.bot.error_embed(interaction, "This user has already been moderated. You cannot submit another appeal.")
+            elif result and result[0] != "Rejected":
                     return await self.bot.error_embed(interaction, "This user already has a pending or active report.")   
 
         try:
