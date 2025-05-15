@@ -40,7 +40,7 @@ class FormActionView(View):
             self.db_connection.commit()
 
             embed.set_field_at(-1, name="Status", value="✅ Approved", inline=False)
-            view = ReportActionView(self.bot, interaction.user, db_connection=self.db_connection, report_id=self.report_id)
+            view = ReportActionView(self.bot, interaction.user, db_connection=self.db_connection)
             await self.message.edit(embed=embed, view=view)
             
             dm_embed = discord.Embed(title=f"{self.form_type.capitalize()} Approved", description="Your game report has been reviewed and processed. The reported user has been moderated." if self.form_type == "report" else "Your appeal has been reviewed and approved. Your ban has been lifted.", color=discord.Color.green())
