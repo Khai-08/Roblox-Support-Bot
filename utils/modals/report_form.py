@@ -43,8 +43,8 @@ class ReportFormModal(Modal, title="Game Report Form"):
             result = cursor.fetchone()
             if result and result[0] == "Approved":
                 return await self.bot.error_embed(interaction, "This user has already been moderated. You cannot submit another appeal.")
-            elif result and result[0] != "Rejected":
-                    return await self.bot.error_embed(interaction, "This user already has a pending or active report.")   
+            elif result and result[0] not in ("Approved", "Rejected"):
+                return await self.bot.error_embed(interaction, "This user already has a pending or active report.")   
 
         try:
             with self.db_connection.cursor() as cursor:
