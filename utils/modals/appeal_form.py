@@ -51,8 +51,8 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
                     "VALUES (%s, %s, %s, %s, %s, %s, NOW())",
                     (self.user_id.value, self.ban_reason.value, self.appeal_reason.value, self.additional_info.value or "N/A", "Waiting for admin/staff response...", interaction.user.id)
                 )
-            self.db_connection.commit()
             appeal_id = cursor.lastrowid
+            self.db_connection.commit()
             await self.bot.success_embed(interaction, "Your appeal has been submitted.")
 
             embed = discord.Embed(title="New Appeal Report", color=discord.Color.blue())
@@ -66,9 +66,13 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
             embed.set_thumbnail(url=await fetch_user_thumbnail_v2(self.user_id.value))
 
             from utils.modals.form_modal import FormActionView
-            view = FormActionView(self.bot, interaction.user, "appeal", db_connection=self.db_connection, name=user_info["name"], ban_reason=self.ban_reason.value, appeal_reason=self.appeal_reason.value, additional_info=self.additional_info.value, report_id=appeal_id)
+            view = FormActionView(self.bot, "appeal", db_connection=self.db_connection, name=user_info["name"], ban_reason=self.ban_reason.value, appeal_reason=self.appeal_reason.value, additional_info=self.additional_info.value, report_id=appeal_id)
             sent_message = await pending_channel.send(embed=embed, view=view)
             view.message = sent_message
+
+            with self.db_connection.cursor() as cursor:
+                cursor.execute("UPDATE game_appeals SET message_id = %s WHERE appeal_id = %s", (sent_message.id, appeal_id))
+            self.db_connection.commit()
 
         except Exception as e:
             await self.bot.error_embed(interaction, f"Error: {e}")
