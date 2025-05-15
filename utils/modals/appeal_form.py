@@ -57,7 +57,7 @@ class AppealFormModal(Modal, title="Game Appeal Form"):
             self.db_connection.commit()
             await self.bot.success_embed(interaction, "Your appeal has been submitted.")
 
-            embed = discord.Embed(title="New Appeal Report", color=discord.Color.blue())
+            embed = discord.Embed(title="New Game Appeal", color=discord.Color.blue())
             embed.add_field(name="Roblox Username", value=f"[{user_info['displayName']} (@{user_info['name']})](https://www.roblox.com/users/{user_info['id']}/profile)", inline=False)
             embed.add_field(name="Ban Reason", value=self.ban_reason.value, inline=False)
             embed.add_field(name="Reason For Appeal", value=self.appeal_reason.value, inline=False)
