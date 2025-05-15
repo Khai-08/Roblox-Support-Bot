@@ -21,7 +21,6 @@ class ReportFormModal(Modal, title="Game Report Form"):
 
     async def on_submit(self, interaction: discord.Interaction):
         pending_channel_id = self.bot.settings.get(self.form_type, {}).get("pending_reports_channel")
-
         if not pending_channel_id:
             return await self.bot.error_embed(interaction, "Pending channel not set up. Please contact an admin.")
 
@@ -56,8 +55,8 @@ class ReportFormModal(Modal, title="Game Report Form"):
                     "VALUES (%s, %s, %s, %s, %s, %s, NOW())",
                     (self.user_id.value, self.reason.value, self.evidence.value, self.additional_info.value or "N/A", "Waiting for admin/staff response...", interaction.user.id)
                 )
+            report_id = cursor.lastrowid
             self.db_connection.commit()
-            appeal_id = cursor.lastrowid
             await self.bot.success_embed(interaction, "Your report has been submitted.")
         
             embed = discord.Embed(title="New Game Report", color=discord.Color.blue())
@@ -67,13 +66,17 @@ class ReportFormModal(Modal, title="Game Report Form"):
             if self.additional_info.value:
                 embed.add_field(name="Additional Info", value=self.additional_info.value, inline=False)
             embed.add_field(name="Status", value="Waiting for admin/staff response...", inline=False)
-            embed.set_footer(text=f"Submitted by {interaction.user} | RPT-{appeal_id}", icon_url=interaction.user.display_avatar.url)
+            embed.set_footer(text=f"Submitted by {interaction.user} | RPT-{report_id}", icon_url=interaction.user.display_avatar.url)
             embed.set_thumbnail(url=await fetch_user_thumbnail_v2(self.user_id.value))
 
             from utils.modals.form_modal import FormActionView
-            view = FormActionView(self.bot, interaction.user, "report", db_connection=self.db_connection, report_id=appeal_id)
+            view = FormActionView(self.bot, "report", db_connection=self.db_connection, report_id=report_id)
             sent_message = await pending_channel.send(embed=embed, view=view)
             view.message = sent_message
+
+            with self.db_connection.cursor() as cursor:
+                cursor.execute("UPDATE game_reports SET message_id = %s WHERE report_id = %s", (sent_message.id, report_id))
+            self.db_connection.commit()
 
         except Exception as e:
             await self.bot.error_embed(interaction, f"Error: {e}")
