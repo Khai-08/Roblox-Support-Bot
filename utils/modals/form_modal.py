@@ -31,11 +31,13 @@ class FormActionView(View):
                 table = "game_appeals"
                 id_col = "appeal_id"
                 type = "appeal"
+                is_report = False
             else:
                 channel_id = self.bot.settings.get("reports", {}).get("pending_reports_channel")
                 table = "game_reports"
                 id_col = "report_id"
                 type = "report"
+                is_report = True
             
             with self.db_connection.cursor() as cursor:
                 cursor.execute(f"UPDATE {table} SET status = %s WHERE {id_col} = %s", ("Approved", report_id))
@@ -46,7 +48,7 @@ class FormActionView(View):
             self.db_connection.commit()
 
             embed.set_field_at(-1, name="Status", value="✅ Approved", inline=False)
-            view = ReportActionView(self.bot, interaction.user, db_connection=self.db_connection)
+            view = ReportActionView(self.bot, interaction.user, db_connection=self.db_connection) if is_report else None
             channel = interaction.guild.get_channel(channel_id)
             message = await channel.fetch_message(message_id[0])
             await message.edit(embed=embed, view=view)
