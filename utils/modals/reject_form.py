@@ -16,17 +16,16 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
-            channel_id = self.bot.settings.get("reports", {}).get("pending_reports_channel")
-            channel = interaction.guild.get_channel(channel_id)
-
             embed = interaction.message.embeds[0]
             form_type = embed.title.lower()
             report_id = int(embed.footer.text.split("RPT-")[-1])
             if "appeal" in form_type.lower():
+                channel_id = self.bot.settings.get("appeals", {}).get("pending_appeals_channel")
                 table = "game_appeals"
                 id_col = "appeal_id"
                 type = "appeal"
             else:
+                channel_id = self.bot.settings.get("reports", {}).get("pending_reports_channel")
                 table = "game_reports"
                 id_col = "report_id"
                 type = "report"
@@ -40,6 +39,7 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
             self.db_connection.commit()
             
             embed.set_field_at(-1, name="Status", value=f"❌ Rejected: {self.reason}", inline=False)
+            channel = interaction.guild.get_channel(channel_id)
             message = await channel.fetch_message(message_id[0])
             await message.edit(embed=embed, view=None)
             
