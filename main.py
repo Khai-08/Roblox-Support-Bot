@@ -8,7 +8,7 @@ from functools import wraps
 
 from utils.config_utils import ConfigurationUtils
 from utils.modals.evidence_form import EvidenceRequestView, ReportActionView
-from utils.modals.form_modal import FormView
+from utils.modals.form_modal import FormActionView, FormView
 from config.db_config import get_db_connection
 
 class FISCHBot(commands.Bot):
@@ -113,6 +113,7 @@ class FISCHBot(commands.Bot):
         await self.change_presence(activity=discord.Activity(type=presence_mapping, name=self.stat))
 
         bot.add_view(ReportActionView(bot, None, self.db_connection))
+        bot.add_view(FormActionView(bot, None, self.db_connection))
         bot.add_view(EvidenceRequestView(bot, self.db_connection))
         bot.add_view(FormView(bot, "appeals", self.db_connection))
         bot.add_view(FormView(bot, "reports", self.db_connection))
