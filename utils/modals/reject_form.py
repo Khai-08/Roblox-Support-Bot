@@ -44,7 +44,7 @@ class RejectReasonModal(Modal, title="Rejection Reason"):
             await message.edit(embed=embed, view=None)
             
             user = await self.bot.fetch_user(user_id[0])
-            user_embed = discord.Embed(title=f"{type.capitalize()} Rejected", description=("Your game report has been reviewed and no action has been taken." "The report did not meet our moderation criteria." if type == "report" else "Your appeal has been reviewed and denied. The ban will remain in place."), color=discord.Color.red())
+            user_embed = discord.Embed(title=f"{type.capitalize()} Rejected", description=("Your game report has been reviewed and no action has been taken. The report did not meet our moderation criteria." if type == "report" else "Your appeal has been reviewed and denied. The ban will remain in place."), color=discord.Color.red())
             user_embed.add_field(name="Reason", value=self.reason.value, inline=False)
             user_embed.set_footer(text="This is an automated message.")
             await user.send(embed=user_embed)
