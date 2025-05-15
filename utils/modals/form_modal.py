@@ -23,21 +23,20 @@ class FormActionView(View):
             return await self.bot.error_embed(interaction, "You do not have permission to use this command.")
         
         try:
-            channel_id = self.bot.settings.get("reports", {}).get("pending_reports_channel")
-            channel = interaction.guild.get_channel(channel_id)
-
             embed = interaction.message.embeds[0]
             form_type = embed.title.lower()
             report_id = int(embed.footer.text.split("RPT-")[-1])
             if "appeal" in form_type:
+                channel_id = self.bot.settings.get("appeals", {}).get("pending_appeals_channel")
                 table = "game_appeals"
                 id_col = "appeal_id"
                 type = "appeal"
             else:
+                channel_id = self.bot.settings.get("reports", {}).get("pending_reports_channel")
                 table = "game_reports"
                 id_col = "report_id"
                 type = "report"
-
+            
             with self.db_connection.cursor() as cursor:
                 cursor.execute(f"UPDATE {table} SET status = %s WHERE {id_col} = %s", ("Approved", report_id))
                 cursor.execute(f"SELECT submitted_by FROM {table} WHERE {id_col} = %s", (report_id,))
@@ -48,6 +47,7 @@ class FormActionView(View):
 
             embed.set_field_at(-1, name="Status", value="✅ Approved", inline=False)
             view = ReportActionView(self.bot, interaction.user, db_connection=self.db_connection)
+            channel = interaction.guild.get_channel(channel_id)
             message = await channel.fetch_message(message_id[0])
             await message.edit(embed=embed, view=view)
             
